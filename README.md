@@ -28,7 +28,7 @@
 
 ## 🎬 Demo
 
-![Mermaid View Enhancer Demo](demo.gif)
+![Mermaid View Enhancer Demo](assets/demo.gif)
 
 *Smooth zooming and panning make complex diagrams accessible*
 
