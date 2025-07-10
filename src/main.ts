@@ -41,21 +41,23 @@ export default class MermaidViewEnhancer extends Plugin {
 	 * 設定を読み込み
 	 */
 	async loadSettings() {
-		const loadedSettings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const savedData = await this.loadData();
+		let loadedSettings = Object.assign({}, DEFAULT_SETTINGS, savedData);
 		
 		// 古い形式のwheelSensitivity値を新形式に変換（0.002 -> 100）
 		if (loadedSettings.wheelSensitivity < 1) {
 			loadedSettings.wheelSensitivity = loadedSettings.wheelSensitivity * 50000; // 0.002 * 50000 = 100
 		}
 		
-		// 削除されたプロパティをクリーンアップ（後方互換性）
-		const cleanSettings = { ...loadedSettings };
-		delete (cleanSettings as any).enabled;
-		delete (cleanSettings as any).minZoom;
-		delete (cleanSettings as any).initialZoom;
-		delete (cleanSettings as any).doubleTapZoom;
-		
-		this.settings = cleanSettings;
+		// 現在の設定型に適合するプロパティのみを抽出（型安全）
+		this.settings = {
+			maxZoom: loadedSettings.maxZoom,
+			zoomStep: loadedSettings.zoomStep,
+			wheelSensitivity: loadedSettings.wheelSensitivity,
+			animationDuration: loadedSettings.animationDuration,
+			containerWidthMode: loadedSettings.containerWidthMode,
+			customWidth: loadedSettings.customWidth,
+		};
 	}
 
 	/**
@@ -180,7 +182,6 @@ export default class MermaidViewEnhancer extends Plugin {
 
 		visibleMermaids.forEach((diagram, index) => {
 			this.enhanceDiagram(diagram, index);
-			diagram.setAttribute('data-zoom-enhanced', 'true'); // 処理済みマーク
 		});
 
 		console.log('🎉 図表強化完了！');
@@ -194,6 +195,9 @@ export default class MermaidViewEnhancer extends Plugin {
 		if (diagram.hasAttribute('data-zoom-enhanced')) {
 			return;
 		}
+
+		// リーディングビュー用のwrapper作成
+		this.createWrapperIfNeeded(diagram);
 
 		// 表示枠の幅を調整
 		this.adjustContainerWidth(diagram);
@@ -209,22 +213,24 @@ export default class MermaidViewEnhancer extends Plugin {
 			lastTouchDistance: 0
 		};
 
-		// 基本スタイル設定
-		diagram.style.cssText = `
-			transition: transform ${this.settings.animationDuration}s ease-out !important;
-			transform-origin: 0 0 !important;
-			user-select: none !important;
-			touch-action: none !important;
-			cursor: grab !important;
-		`;
+		// 基本スタイル設定（静的スタイルはCSSで管理）
+		// 動的スタイル（設定依存）のみをJavaScriptで設定
+		diagram.style.transition = `transform ${this.settings.animationDuration}s ease-out`;
+		
+		// 処理済みマークを追加（CSSセレクターで使用）
+		diagram.setAttribute('data-zoom-enhanced', 'true');
 
 		// トランスフォーム適用関数
 		const applyTransform = () => {
 			const transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
 			diagram.style.transform = transform;
 
-			// 常にグラブカーソル
-			diagram.style.cursor = state.isDragging ? 'grabbing' : 'grab';
+			// cursor状態をCSSクラスで管理
+			if (state.isDragging) {
+				diagram.classList.add('is-dragging');
+			} else {
+				diagram.classList.remove('is-dragging');
+			}
 		};
 
 		// ダブルクリック：リセット
@@ -369,30 +375,111 @@ export default class MermaidViewEnhancer extends Plugin {
 	}
 
 	/**
+	 * リーディングビュー用のwrapper要素を作成
+	 */
+	private createWrapperIfNeeded(diagram: HTMLElement) {
+		const parent = diagram.parentElement;
+		if (!parent) return;
+
+		// 編集ビューの場合はwrapperを作成しない
+		if (parent.className.includes('cm-preview-code-block')) {
+			return;
+		}
+
+		// 既にwrapperが存在する場合はスキップ
+		if (parent.classList.contains('mermaid-wrapper')) {
+			return;
+		}
+
+		// wrapper要素を作成
+		const wrapper = document.createElement('div');
+		wrapper.className = 'mermaid-wrapper';
+		wrapper.style.cssText = `
+			overflow: auto;
+			width: 100%;
+			box-sizing: border-box;
+		`;
+
+		// 図表をwrapperで包む
+		parent.insertBefore(wrapper, diagram);
+		wrapper.appendChild(diagram);
+	}
+
+	/**
 	 * 表示枠の幅を調整
 	 */
 	private adjustContainerWidth(diagram: HTMLElement) {
-		const container = diagram.parentElement;
-		if (!container) return;
+		const parent = diagram.parentElement;
+		if (!parent) return;
+
+		// 編集ビューの場合
+		if (parent.className.includes('cm-preview-code-block')) {
+			this.adjustEditingViewWidth(parent);
+			return;
+		}
+
+		// リーディングビューの場合（wrapper使用）
+		if (parent.classList.contains('mermaid-wrapper')) {
+			this.adjustReadingViewWidth(parent);
+			return;
+		}
+	}
+
+	/**
+	 * 編集ビューの表示枠調整
+	 */
+	private adjustEditingViewWidth(container: HTMLElement) {
+		// 既存のクラスを削除
+		container.classList.remove('mermaid-container-custom');
+		container.classList.remove('mermaid-container-fullwidth');
 
 		switch (this.settings.containerWidthMode) {
 			case 'auto':
-				// デフォルトのスタイルをリセット
 				container.style.width = '';
 				container.style.maxWidth = '';
 				container.style.overflow = '';
 				break;
 				
 			case 'custom':
+				container.classList.add('mermaid-container-custom');
 				container.style.width = `${this.settings.customWidth}px`;
 				container.style.maxWidth = `${this.settings.customWidth}px`;
 				container.style.overflow = 'auto';
 				break;
 				
 			case 'fullwidth':
+				container.classList.add('mermaid-container-fullwidth');
 				container.style.width = '100%';
 				container.style.maxWidth = '100%';
 				container.style.overflow = 'auto';
+				break;
+		}
+	}
+
+	/**
+	 * リーディングビューの表示枠調整
+	 */
+	private adjustReadingViewWidth(wrapper: HTMLElement) {
+		// 既存のクラスを削除
+		wrapper.classList.remove('mermaid-wrapper-custom');
+		wrapper.classList.remove('mermaid-wrapper-fullwidth');
+
+		switch (this.settings.containerWidthMode) {
+			case 'auto':
+				wrapper.style.width = '100%';
+				wrapper.style.maxWidth = '';
+				break;
+				
+			case 'custom':
+				wrapper.classList.add('mermaid-wrapper-custom');
+				wrapper.style.width = `${this.settings.customWidth}px`;
+				wrapper.style.maxWidth = `${this.settings.customWidth}px`;
+				break;
+				
+			case 'fullwidth':
+				wrapper.classList.add('mermaid-wrapper-fullwidth');
+				wrapper.style.width = '100%';
+				wrapper.style.maxWidth = '100%';
 				break;
 		}
 	}
@@ -416,21 +503,32 @@ export default class MermaidViewEnhancer extends Plugin {
 			
 			// スタイルをリセット
 			element.style.transform = '';
-			element.style.transformOrigin = '';
 			element.style.transition = '';
-			element.style.cursor = '';
-			element.style.userSelect = '';
-			element.style.touchAction = '';
 			
-			// 処理済みマークを削除
+			// CSSクラスを削除
+			element.classList.remove('is-dragging');
 			element.removeAttribute('data-zoom-enhanced');
 			
-			// 表示枠もリセット
-			const container = element.parentElement;
-			if (container) {
-				container.style.width = '';
-				container.style.maxWidth = '';
-				container.style.overflow = '';
+			// 親要素の処理
+			const parent = element.parentElement;
+			if (parent) {
+				// 編集ビューの場合
+				if (parent.className.includes('cm-preview-code-block')) {
+					parent.style.width = '';
+					parent.style.maxWidth = '';
+					parent.style.overflow = '';
+					parent.classList.remove('mermaid-container-custom');
+					parent.classList.remove('mermaid-container-fullwidth');
+				}
+				// リーディングビューのwrapper の場合
+				else if (parent.classList.contains('mermaid-wrapper')) {
+					const grandParent = parent.parentElement;
+					if (grandParent) {
+						// wrapperを削除して図表を元の位置に戻す
+						grandParent.insertBefore(element, parent);
+						grandParent.removeChild(parent);
+					}
+				}
 			}
 		});
 	}

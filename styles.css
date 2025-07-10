@@ -1,10 +1,48 @@
 /*
 Mermaid View Enhancer Styles
 
-This plugin primarily uses JavaScript for styling to ensure
-dynamic behavior and compatibility across themes.
-
-Any additional styles can be added here as needed.
+Static styles for enhanced Mermaid diagrams.
+Dynamic styles (transform, cursor states) are handled via JavaScript.
 */
 
-/* Currently no custom styles required */
+/* Enhanced Mermaid diagrams */
+.mermaid[data-zoom-enhanced] {
+    transform-origin: 0 0 !important;
+    user-select: none !important;
+    touch-action: none !important;
+    cursor: grab !important;
+}
+
+/* Dragging state */
+.mermaid[data-zoom-enhanced].is-dragging {
+    cursor: grabbing !important;
+}
+
+/* Container width adjustments (for editing view) */
+.mermaid-container-custom {
+    overflow: auto;
+}
+
+.mermaid-container-fullwidth {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: auto;
+}
+
+/* Wrapper for reading view */
+.mermaid-wrapper {
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.mermaid-wrapper-custom {
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.mermaid-wrapper-fullwidth {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: auto;
+    box-sizing: border-box;
+}

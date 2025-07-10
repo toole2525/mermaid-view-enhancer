@@ -135,12 +135,7 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 					}));
 		}
 
-		// 高度な設定セクション
-		const advancedEl = containerEl.createEl('details');
-		const summaryEl = advancedEl.createEl('summary');
-		summaryEl.createEl('h3', { text: 'Advanced Settings' });
-
-		// リセットボタン
+		// リセット設定セクション
 		containerEl.createEl('h3', { text: 'Reset Settings' });
 		
 		new Setting(containerEl)
@@ -159,13 +154,26 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 		containerEl.createEl('h3', { text: 'How to Use' });
 		
 		const instructionsEl = containerEl.createDiv();
-		instructionsEl.innerHTML = `
-			<ul>
-				<li><strong>Mouse wheel:</strong> Zoom in/out centered on mouse position (100% - ${this.plugin.settings.maxZoom * 100}%)</li>
-				<li><strong>Click and drag:</strong> Pan around at any zoom level</li>
-				<li><strong>Double-click:</strong> Reset to 100% zoom and center position</li>
-				<li><strong>Touch:</strong> Pinch to zoom, drag to pan</li>
-			</ul>
-		`;
+		const listEl = instructionsEl.createEl('ul');
+
+		// Mouse wheel
+		const mouseWheelLi = listEl.createEl('li');
+		mouseWheelLi.createEl('strong', { text: 'Mouse wheel:' });
+		mouseWheelLi.appendText(` Zoom in/out centered on mouse position (100% - ${this.plugin.settings.maxZoom * 100}%)`);
+
+		// Click and drag
+		const clickDragLi = listEl.createEl('li');
+		clickDragLi.createEl('strong', { text: 'Click and drag:' });
+		clickDragLi.appendText(' Pan around at any zoom level');
+
+		// Double-click
+		const doubleClickLi = listEl.createEl('li');
+		doubleClickLi.createEl('strong', { text: 'Double-click:' });
+		doubleClickLi.appendText(' Reset to 100% zoom and center position');
+
+		// Touch
+		const touchLi = listEl.createEl('li');
+		touchLi.createEl('strong', { text: 'Touch:' });
+		touchLi.appendText(' Pinch to zoom, drag to pan');
 	}
 }
