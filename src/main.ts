@@ -178,13 +178,9 @@ export default class MermaidViewEnhancer extends Plugin {
 
 		if (visibleMermaids.length === 0) return;
 
-		console.log(`対象図表: ${visibleMermaids.length}個を強化中...`);
-
 		visibleMermaids.forEach((diagram, index) => {
 			this.enhanceDiagram(diagram, index);
 		});
-
-		console.log('🎉 図表強化完了！');
 	}
 
 	/**
@@ -370,8 +366,6 @@ export default class MermaidViewEnhancer extends Plugin {
 		diagram.addEventListener('touchstart', handleTouchStart);
 		diagram.addEventListener('touchmove', handleTouchMove);
 		diagram.addEventListener('touchend', handleTouchEnd);
-
-		console.log(`✅ 図表${index + 1}に機能適用完了`);
 	}
 
 	/**
@@ -391,14 +385,9 @@ export default class MermaidViewEnhancer extends Plugin {
 			return;
 		}
 
-		// wrapper要素を作成
+		// wrapper要素を作成（スタイルはCSSで管理）
 		const wrapper = document.createElement('div');
 		wrapper.className = 'mermaid-wrapper';
-		wrapper.style.cssText = `
-			overflow: auto;
-			width: 100%;
-			box-sizing: border-box;
-		`;
 
 		// 図表をwrapperで包む
 		parent.insertBefore(wrapper, diagram);

@@ -33,11 +33,8 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		// タイトル
-		containerEl.createEl('h2', { text: 'Mermaid View Enhancer Settings' });
-
 		// ズーム設定セクション
-		containerEl.createEl('h3', { text: 'Zoom Settings' });
+		new Setting(containerEl).setName('Zoom').setHeading();
 
 		// 最大ズーム
 		new Setting(containerEl)
@@ -85,7 +82,7 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 			});
 
 		// アニメーション設定セクション
-		containerEl.createEl('h3', { text: 'Animation Settings' });
+		new Setting(containerEl).setName('Animation').setHeading();
 
 		// アニメーション速度
 		new Setting(containerEl)
@@ -101,7 +98,7 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 				}));
 
 		// 表示設定セクション
-		containerEl.createEl('h3', { text: 'Display Settings' });
+		new Setting(containerEl).setName('Display').setHeading();
 
 		// コンテナ幅モード
 		new Setting(containerEl)
@@ -136,7 +133,7 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 		}
 
 		// リセット設定セクション
-		containerEl.createEl('h3', { text: 'Reset Settings' });
+		new Setting(containerEl).setName('Reset').setHeading();
 		
 		new Setting(containerEl)
 			.setName('Reset all settings')
@@ -151,7 +148,7 @@ export class MermaidViewEnhancerSettingTab extends PluginSettingTab {
 				}));
 
 		// 使用方法説明
-		containerEl.createEl('h3', { text: 'How to Use' });
+		new Setting(containerEl).setName('How to use').setHeading();
 		
 		const instructionsEl = containerEl.createDiv();
 		const listEl = instructionsEl.createEl('ul');
