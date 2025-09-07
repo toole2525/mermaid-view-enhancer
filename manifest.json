@@ -1,11 +1,11 @@
 {
-	"id": "mermaid-view-enhancer",
-	"name": "Mermaid View Enhancer",
-	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Enhance Mermaid diagrams with smooth zoom, pan, and interactive viewing capabilities. Make your diagrams more accessible and easier to explore.",
-	"author": "toole2525",
-	"authorUrl": "",
-	"fundingUrl": "",
-	"isDesktopOnly": false
+    "id": "mermaid-view-enhancer",
+    "name": "Mermaid View Enhancer", 
+    "version": "1.0.1",
+    "minAppVersion": "0.15.0",
+    "description": "Enhance Mermaid diagrams with smooth zoom, pan, and interactive viewing capabilities. Make your diagrams more accessible and easier to explore.",
+    "author": "toole2525",
+    "authorUrl": "",
+    "fundingUrl": "",
+    "isDesktopOnly": false
 }
